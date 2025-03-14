@@ -168,10 +168,10 @@ class SecurityConfig {
     }
 
     //An instance of JwtDecoder for decoding signed access tokens.
-    @Bean
+/*    @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-    }
+    }*/
 
     //An instance of AuthorizationServerSettings to configure Spring Authorization Server.
     /*@Bean
@@ -180,7 +180,7 @@ class SecurityConfig {
     }*/
 
     //password encoder for user password
-    /*@Bean
+/*    @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }*/
@@ -206,5 +206,4 @@ class SecurityConfig {
             }
         };
     }
-
 }
