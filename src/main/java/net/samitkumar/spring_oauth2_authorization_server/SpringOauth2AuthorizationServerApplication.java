@@ -174,16 +174,16 @@ class SecurityConfig {
     }*/
 
     //An instance of AuthorizationServerSettings to configure Spring Authorization Server.
-    /*@Bean
+    @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
-    }*/
+    }
 
     //password encoder for user password
-/*    @Bean
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }*/
+    }
 
     //add more details on access_token
     @Bean
