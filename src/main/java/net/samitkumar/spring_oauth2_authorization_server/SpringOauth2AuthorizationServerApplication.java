@@ -1,24 +1,14 @@
 package net.samitkumar.spring_oauth2_authorization_server;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -26,30 +16,35 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 public class SpringOauth2AuthorizationServerApplication {
@@ -57,12 +52,81 @@ public class SpringOauth2AuthorizationServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(SpringOauth2AuthorizationServerApplication.class, args);
     }
+
+    @Bean
+    JsonPlaceHolderClient jsonPlaceHolderClient() {
+        RestClient restClient = RestClient.builder().build();
+        RestClientAdapter adapter = RestClientAdapter.create(restClient);
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
+        return factory.createClient(JsonPlaceHolderClient.class);
+    }
+}
+
+record User(String id, String name, String email, String username) implements UserDetails {
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                return "USER";
+            }
+        });
+    }
+
+    @Override
+    public String getPassword() {
+        //TODO Use a password encoder
+        return "{noop}password";
+    }
+
+    @Override
+    public String getUsername() {
+        return username();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+
+@HttpExchange(url = "https://jsonplaceholder.typicode.com/users")
+interface JsonPlaceHolderClient {
+    @GetExchange
+    List<User> getUser(@RequestParam("username") String username);
 }
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 @Slf4j
 class SecurityConfig {
+    final JsonPlaceHolderClient jsonPlaceHolderClient;
+
+    @Bean
+    UserDetailsService userDetailsService() {
+        return username -> {
+            log.info("Fetching user details for {}", username);
+            var userDetails = jsonPlaceHolderClient.getUser(username);
+            log.info("User details: {}", userDetails);
+            return userDetails.getFirst();
+        };
+    }
 
     @Bean
     @Order(1)
@@ -180,10 +244,10 @@ class SecurityConfig {
     }
 
     //password encoder for user password
-    @Bean
+    /*@Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
+    }*/
 
     //add more details on access_token
     @Bean
@@ -196,12 +260,12 @@ class SecurityConfig {
                             .map(c -> c.replaceFirst("^ROLE_", ""))
                             .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
                     claims.put("roles", roles);
-                    //var user = (UserDetails) context.getPrincipal().getPrincipal();
+                    var user = (User) context.getPrincipal().getPrincipal();
                     log.info("######### User: {}", context.getPrincipal().getPrincipal());
-                    claims.put("id","fakeId");
-                    claims.put("name", "fakename");
-                    claims.put("email", "fakeEmail");
-                    claims.put("phone", "fakePhone");
+                    claims.put("id", user.id());
+                    claims.put("name", user.name());
+                    claims.put("email", user.email());
+                    claims.put("username", user.username());
                 });
             }
         };
