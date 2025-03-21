@@ -12,9 +12,26 @@ spring:
     oauth2:
       authorizationserver:
         client:
-          clientone:
+          gateway:
             registration:
-              client-id: "clientone"
+              client-id: "gateway"
+              client-secret: "{noop}secret1"
+              client-authentication-methods:
+                - "client_secret_basic"
+              authorization-grant-types:
+                - "authorization_code"
+                - "refresh_token"
+                - "client_credentials"
+              redirect-uris:
+                - "http://localhost:9091/login/oauth2/code/gateway"
+              scopes:
+                - "user.read"
+                - "user.write"
+                - "openid"
+            require-authorization-consent: true
+          mvcclient:
+            registration:
+              client-id: "mvcclient"
               client-secret: "{noop}secret"
               client-authentication-methods:
                 - "client_secret_basic"
@@ -23,7 +40,7 @@ spring:
                 - "refresh_token"
                 - "client_credentials"
               redirect-uris:
-                - "http://127.0.0.1:8080/login/oauth2/code/clientone"
+                - "http://127.0.0.1:8080/login/oauth2/code/mvcclient"
               scopes:
                 - "user.read"
                 - "user.write"
