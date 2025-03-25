@@ -31,6 +31,9 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
@@ -154,7 +157,7 @@ class SecurityConfig {
                         )
                 );
 
-        return http.build();
+        return http.cors(Customizer.withDefaults()).build();
     }
 
     @Bean
@@ -169,7 +172,7 @@ class SecurityConfig {
                 // authorization server filter chain
                 .formLogin(Customizer.withDefaults());
 
-        return http.build();
+        return http.cors(Customizer.withDefaults()).build();
     }
 
     //In-memory User (We have it in application.yml)
@@ -269,5 +272,17 @@ class SecurityConfig {
                 });
             }
         };
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.addAllowedOriginPattern("*");
+        config.setAllowCredentials(true);
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

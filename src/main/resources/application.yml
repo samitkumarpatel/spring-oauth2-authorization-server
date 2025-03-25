@@ -28,6 +28,8 @@ spring:
                 - "user.write"
                 - "openid"
             require-authorization-consent: true
+            token:
+              access-token-time-to-live: 60s
           mvcclient:
             registration:
               client-id: "mvcclient"
@@ -44,6 +46,26 @@ spring:
                 - "user.write"
                 - "openid"
             require-authorization-consent: true
+            token:
+              access-token-time-to-live: 90s
+          public-client:
+            registration:
+              client-id: "public-client"
+              client-authentication-methods:
+                - "none"
+              authorization-grant-types:
+                - "authorization_code"
+              redirect-uris:
+                - "http://127.0.0.1:3000"
+              scopes:
+                - "openid"
+                - "profile"
+                - "email"
+                - "offline_access"
+            require-authorization-consent: true
+            require-proof-key: true
+            token:
+              access-token-time-to-live: 30s
 
 management:
   endpoints:
