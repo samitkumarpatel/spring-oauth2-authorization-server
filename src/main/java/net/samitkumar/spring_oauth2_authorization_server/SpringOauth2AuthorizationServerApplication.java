@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -62,6 +63,18 @@ public class SpringOauth2AuthorizationServerApplication {
         RestClientAdapter adapter = RestClientAdapter.create(restClient);
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
         return factory.createClient(JsonPlaceHolderClient.class);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.addAllowedOriginPattern("*");
+        config.setAllowCredentials(true);
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
 
@@ -157,7 +170,9 @@ class SecurityConfig {
                         )
                 );
 
-        return http.cors(Customizer.withDefaults()).build();
+        http.cors(Customizer.withDefaults());
+
+        return http.build();
     }
 
     @Bean
@@ -172,7 +187,9 @@ class SecurityConfig {
                 // authorization server filter chain
                 .formLogin(Customizer.withDefaults());
 
-        return http.cors(Customizer.withDefaults()).build();
+        http.cors(Customizer.withDefaults());
+
+        return http.build();
     }
 
     //In-memory User (We have it in application.yml)
@@ -272,17 +289,5 @@ class SecurityConfig {
                 });
             }
         };
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.addAllowedOriginPattern("*");
-        config.setAllowCredentials(true);
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 }
