@@ -6,9 +6,11 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -29,7 +31,11 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -41,11 +47,15 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -181,6 +191,8 @@ class SecurityConfig {
             throws Exception {
         http
                 .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        .requestMatchers("/public/pkce", "/register.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Form login handles the redirect to the login page from the
@@ -289,5 +301,26 @@ class SecurityConfig {
                 });
             }
         };
+    }
+}
+
+@Controller
+class WebController {
+
+    @GetMapping("/public/pkce")
+    @ResponseBody
+    @SneakyThrows
+    Map<String, String> pkce() {
+        byte[] code = new byte[32];
+        new SecureRandom().nextBytes(code) ;
+        String verifier = Base64.getUrlEncoder ().withoutPadding().encodeToString(code);
+
+        byte[] digestedVerifier = MessageDigest.getInstance("SHA-256").digest(verifier.getBytes());
+        String codeChallenge = Base64.getUrlEncoder().withoutPadding(). encodeToString(digestedVerifier);
+
+        return Map.of(
+                "code_challenge", codeChallenge,
+                "code_verifier", verifier
+        );
     }
 }

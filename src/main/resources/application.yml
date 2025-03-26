@@ -60,12 +60,10 @@ spring:
               scopes:
                 - "openid"
                 - "profile"
-                - "email"
-                - "offline_access"
             require-authorization-consent: true
             require-proof-key: true
             token:
-              access-token-time-to-live: 30s
+              access-token-time-to-live: 90s
 
 management:
   endpoints:
@@ -75,7 +73,7 @@ management:
 
 logging:
   level:
-    org.springframework.security: trace
+    org.springframework.security: TRACE
     root: INFO
     org.springframework.web: INFO
-    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2: TRACE
