@@ -319,8 +319,8 @@ class WebController {
         String codeChallenge = Base64.getUrlEncoder().withoutPadding(). encodeToString(digestedVerifier);
 
         return Map.of(
-                "code_challenge", codeChallenge,
-                "code_verifier", verifier
+                "codeChallenge", codeChallenge,
+                "codeVerifier", verifier
         );
     }
 }
