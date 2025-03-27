@@ -10,6 +10,8 @@ OAuth 2.0 is a secure way to allow applications to access a user's data on anoth
 
 2.) Different available grant types in OAuth 2.0 are:
 
+> Spring authorization server supports the following grant types: `authorization_code`, `client_credentials`, `refresh_token`
+
 ### Authorization Code Grant (Most Secure & Common)
 📌 Best for: Web & mobile apps needing secure user authentication.
 
@@ -149,14 +151,14 @@ Long-lived sessions in web & mobile apps.
 
 ### Comparison Table
 
-| Grant Type| Best For	| User Logs In?	 |Security Level|
-|-----------|----------|----------------|-----------|
-| Authorization Code|Web & mobile apps | 	✅ Yes|	🔒🔒🔒 High|
-| Client Credentials| Machine-to-machine| ❌ No| 🔒🔒 Medium|
-| Implicit (Deprecated)| SPAs (Old method)| 	✅ Yes| 🔒 Low|
-| Password (ROPC)	| First-party apps| 	✅ Yes| 🔒 Low|
-| Device Flow	| TVs, consoles, IoT	| ✅ Yes| 🔒🔒 Medium|
-| Refresh Token| Long-lived sessions	| ❌ No| 🔒🔒 High|
+| Grant Type| Best For	| User Logs In?	 | Security Level (as per LLM) |
+|-----------|----------|----------------|-----------------------------|
+| Authorization Code|Web & mobile apps | 	✅ Yes| 	🔒🔒🔒 High                |
+| Client Credentials| Machine-to-machine| ❌ No| 🔒🔒 Medium                 |
+| Implicit (Deprecated)| SPAs (Old method)| 	✅ Yes| 🔒 Low                      |
+| Password (ROPC)	| First-party apps| 	✅ Yes| 🔒 Low                      |
+| Device Flow	| TVs, consoles, IoT	| ✅ Yes| 🔒🔒 Medium                 |
+| Refresh Token| Long-lived sessions	| ❌ No| 🔒🔒 High                   |
 
 
 # spring-oauth2-authorization-server

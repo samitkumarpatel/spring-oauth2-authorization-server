@@ -63,7 +63,7 @@ spring:
             require-authorization-consent: true
             require-proof-key: true
             token:
-              access-token-time-to-live: 90s
+              access-token-time-to-live: 1h
 
 management:
   endpoints:
