@@ -263,6 +263,12 @@ class SecurityConfig {
         return keyPair;
     }
 
+    private static KeyPair readRsaKey() {
+        // Read the RSA key pair from the file system
+
+        return new KeyPair(null, null);
+    }
+
     //An instance of JwtDecoder for decoding signed access tokens.
 /*    @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
@@ -272,7 +278,18 @@ class SecurityConfig {
     //An instance of AuthorizationServerSettings to configure Spring Authorization Server.
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().build();
+        return AuthorizationServerSettings.builder()
+//                .authorizationEndpoint("/oauth2/authorize")
+//                .deviceAuthorizationEndpoint("/oauth2/device_authorization")
+//                .deviceVerificationEndpoint("/oauth2/device_verification")
+//                .tokenEndpoint("/oauth2/token")
+//                .tokenIntrospectionEndpoint("/oauth2/introspect")
+//                .tokenRevocationEndpoint("/oauth2/revoke")
+//                .jwkSetEndpoint("/oauth2/jwks")
+//                .oidcLogoutEndpoint("/connect/logout")
+//                .oidcUserInfoEndpoint("/userinfo")
+//                .oidcClientRegistrationEndpoint("/connect/register")
+                .build();
     }
 
     //password encoder for user password
