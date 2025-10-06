@@ -1,165 +1,148 @@
-# Oauth2
+# OAuth 2.0 vs OpenID Connect (OIDC)
+
+OAuth 2.0 and OpenID Connect (OIDC) are both protocols used in modern authentication and authorization systems. Here's how they differ and when to use each:
+
+## 🔍 Key Differences
+
+|Feature |OAuth 2.0 |OpenID Connect (OIDC) |
+|--------|----------|----------------------|
+|Purpose |Authorization |Authentication + Authorization| 
+|Identity Info| Not provided| Provided via ID Token|
+| Token Types | Access Token| Access Token + ID Token|
+| Protocol Layer| Base protocol| Built on top of OAuth 2.0|
+| Use Case| API access| Login + API access|
+
+## ✅ When to Use
+
+- **Use OAuth 2.0** if you only need to access APIs on behalf of a user (authorization).
+- **Use OIDC** if you need to authenticate users and also access APIs (authentication + authorization).
+
+---
+
+# OAuth2
 
 OAuth 2.0 is a secure way to allow applications to access a user's data on another service without sharing passwords. Here's a simple breakdown of how it works:
 
-1.) The Players involve in OAuth 2.0 are:
+## 1. The Players in OAuth 2.0
+
 - `User` – The person using the application.
 - `Client (App)` – The application that wants access to the user’s data.
 - `Authorization Server` – The system that verifies the user and gives access tokens.
 - `Resource Server` – The API that holds the user’s data.
 
-2.) Different available grant types in OAuth 2.0 are:
+## 2. Supported Grant Types
 
-> Spring authorization server supports the following grant types: `authorization_code`, `client_credentials`, `refresh_token`
+> Spring Authorization Server supports: `authorization_code`, `client_credentials`, `refresh_token`
+
+---
 
 ### Authorization Code Grant (Most Secure & Common)
-📌 Best for: Web & mobile apps needing secure user authentication.
 
-🔒 Security: Uses a temporary authorization code and exchanges it for an access token (keeps credentials secure).
-
-👤 User Involvement: Yes (user logs in and consents).
+📌 Best for: Web & mobile apps needing secure user authentication.  
+🔒 Security: Uses a temporary authorization code and exchanges it for an access token.  
+👤 User Involvement: ✅ Yes
 
 **Flow:**
 - App redirects user to Authorization Server.
 - User logs in and approves access.
 - Authorization Server sends an Authorization Code to the app.
-- App exchanges the code for an Access Token (secure because it happens server-to-server).
-- App uses the token to access user data from the API (Resource Server).
+- App exchanges the code for an Access Token.
+- App uses the token to access user data from the API.
 
-💡 Commonly used with:
+💡 Commonly used with: PKCE (Proof Key for Code Exchange)
 
-PKCE (Proof Key for Code Exchange) → Adds extra security for mobile & SPA apps (prevents interception).
-
+---
 
 ### Client Credentials Grant (Machine-to-Machine)
 
-📌 Best for: Backend services, microservices, or automated scripts.
-
-🔒 Security: Uses client ID and client secret (no user interaction).
-
-👤 User Involvement: No.
+📌 Best for: Backend services, microservices, or automated scripts.  
+🔒 Security: Uses client ID and client secret.  
+👤 User Involvement: ❌ No
 
 **Flow:**
+- App requests an Access Token using client ID & secret.
+- Authorization Server returns the Access Token.
+- App accesses the API.
 
-- App directly requests an Access Token from the Authorization Server using its client ID & secret.
-- If valid, Authorization Server returns the Access Token.
-- App uses the token to access the API (Resource Server).
+💡 Commonly used for: Server-to-server communication.
 
-💡 Commonly used for:
-
-Server-to-server communication (e.g., fetching data from APIs).
-
-Internal applications or services where users don’t need to log in.
-
+---
 
 ### Implicit Grant (Deprecated)
 
-📌 Best for: SPAs (but no longer recommended due to security risks).
-
-🔒 Security: Less secure because access tokens are exposed in URLs.
-
-👤 User Involvement: Yes.
+📌 Best for: SPAs (but no longer recommended).  
+🔒 Security: Less secure (tokens exposed in URLs).  
+👤 User Involvement: ✅ Yes
 
 **Flow:**
-
 - App redirects user to Authorization Server.
 - User logs in and approves access.
-- Instead of an Authorization Code, the Access Token is sent directly in the URL.
-- App uses the token to access APIs.
+- Access Token is sent directly in the URL.
 
-🚨 Why is it deprecated?
+🚨 Deprecated due to security risks.  
+> Use Authorization Code Flow with PKCE instead.
 
-The access token is exposed in the URL (prone to theft).
-
-It lacks a way to securely refresh the token.
-
-> PKCE + Authorization Code Flow is the recommended alternative.
-
+---
 
 ### Resource Owner Password Credentials Grant (ROPC)
 
-📌 Best for: Trusted apps (e.g., first-party mobile apps).
-
-🔒 Security: Less secure because the user provides their username & password directly to the app.
-
-👤 User Involvement: Yes (user enters credentials).
+📌 Best for: Trusted apps (e.g., first-party mobile apps).  
+🔒 Security: Less secure (app handles user credentials).  
+👤 User Involvement: ✅ Yes
 
 **Flow:**
+- User enters credentials in the app.
+- App sends them to Authorization Server.
+- Access Token is returned.
 
-User enters their username & password directly into the app.
+🚨 Discouraged due to security risks.  
+> Use Authorization Code Flow instead.
 
-The app sends credentials to the Authorization Server.
-
-If valid, Authorization Server returns an Access Token.
-
-App uses the token to access APIs.
-
-🚨 Why is it discouraged?
-
-The app directly handles user passwords (potential security risk).
-
-> Authorization Code Flow is recommended instead.
+---
 
 ### Device Authorization Grant (Device Flow)
 
-📌 Best for: Devices without browsers (e.g., smart TVs, gaming consoles).
-
-🔒 Security: Uses a unique code + user authentication via another device.
-
-👤 User Involvement: Yes (user must authorize on a separate device).
+📌 Best for: Devices without browsers (e.g., smart TVs).  
+🔒 Security: Uses a unique code + user authentication via another device.  
+👤 User Involvement: ✅ Yes
 
 **Flow:**
+- Device shows a code & URL.
+- User visits URL on another device.
+- User logs in and approves access.
+- Device polls Authorization Server.
+- Access Token is returned.
 
-Device shows a unique code & URL to the user.
+💡 Commonly used for: TVs, IoT devices, gaming consoles.
 
-User visits the URL on a different device (phone/laptop).
-
-User logs in and approves access.
-
-Device polls the Authorization Server until approval is granted.
-
-Device receives an Access Token and starts using the API.
-
-💡 Commonly used for:
-
-Smart TVs (e.g., logging into Netflix on your TV using a code).
-
-IoT devices and gaming consoles.
+---
 
 ### Refresh Token Flow
 
-📌 Best for: Getting a new access token without asking the user to log in again.
-
-🔒 Security: Requires a valid refresh token.
-
-👤 User Involvement: No (silent refresh).
+📌 Best for: Getting a new access token without user login.  
+🔒 Security: Requires a valid refresh token.  
+👤 User Involvement: ❌ No
 
 **Flow:**
+- App sends refresh token to Authorization Server.
+- New Access Token is returned.
 
-App sends the refresh token to the Authorization Server.
+💡 Commonly used for: Long-lived sessions in web & mobile apps.
 
-If valid, Authorization Server returns a new Access Token.
+---
 
-App continues using the new token without asking the user to log in again.
+## 🔄 Comparison Table
 
-💡 Commonly used for:
+|Grant Type| Best For |User Logs In? |Security Level|
+|----------|----------|--------------|--------------|
+|Authorization Code|Web & mobile apps|✅ Yes|🔒🔒🔒 High| 
+|Client Credentials         | Machine-to-machine         | ❌ No          | 🔒🔒 Medium     |
+| Implicit (Deprecated)      | SPAs (Old method)          | ✅ Yes         | 🔒 Low          |
+| Password (ROPC)            | First-party apps           | ✅ Yes         | 🔒 Low          |
+| Device Flow                | TVs, consoles, IoT         | ✅ Yes         | 🔒🔒 Medium     |
+| Refresh Token              | Long-lived sessions        | ❌ No          | 🔒🔒 High       |
 
-Keeping users logged in without re-entering credentials.
-
-Long-lived sessions in web & mobile apps.
-
-
-### Comparison Table
-
-| Grant Type| Best For	| User Logs In?	 | Security Level (as per LLM) |
-|-----------|----------|----------------|-----------------------------|
-| Authorization Code|Web & mobile apps | 	✅ Yes| 	🔒🔒🔒 High                |
-| Client Credentials| Machine-to-machine| ❌ No| 🔒🔒 Medium                 |
-| Implicit (Deprecated)| SPAs (Old method)| 	✅ Yes| 🔒 Low                      |
-| Password (ROPC)	| First-party apps| 	✅ Yes| 🔒 Low                      |
-| Device Flow	| TVs, consoles, IoT	| ✅ Yes| 🔒🔒 Medium                 |
-| Refresh Token| Long-lived sessions	| ❌ No| 🔒🔒 High                   |
-
+---
 
 # spring-oauth2-authorization-server
 
